@@ -5,7 +5,7 @@
 #include <iostream>
 #include <iomanip>
 
-#define _SKIP_LIST_MAX_LEVEL 32
+#define _SKIP_LIST_MAX_LEVEL 8
 
 template<class _Key, class _Val> 
 class skip_list_node {
@@ -19,8 +19,9 @@ public:
 
     bool is_header = false, is_tail = false;
 
-    skip_list_node(size_t level) {
-        next = new _node*[level];
+    skip_list_node(size_t _level) {
+        next = new _node*[_level];
+        level = _level;
     }
 
     ~skip_list_node() {
@@ -57,10 +58,10 @@ protected:
 
     size_t rand_level() {
         size_t new_level = 1;
-        while(rand() % 2 == 0 || new_level > max_level) {
+        while(rand() % 2 == 0 && new_level <= max_level) {
             new_level++;
         }
-        return new_level;
+        return std::min(new_level, max_level);
     }
 public:
     skip_list(size_t _max_level = _SKIP_LIST_MAX_LEVEL) {
@@ -91,9 +92,8 @@ public:
     void debug_print() {
         _node* x = header;
         while (x != tail) {
-            //std::cout << x->key << std::endl;
             for (size_t i = 0; i < x->level; i++) {
-                std::cout << std::setw(10) << x->key;
+                std::cout << std::setw(6) << x->key;
             }
             std::cout << std::endl;
             x = x->next[0];
