@@ -6,8 +6,8 @@ SOURCEDIR = $(BASEDIR)/src
 INCLUDE = -I$(SOURCEDIR)
 TESTDIR = $(BASEDIR)/tests
 
-CXX = g++-11
-CXXFLAGS = $(INCLUDE) -std=c++11 -O0
+CXX = g++
+CXXFLAGS = $(INCLUDE) -std=c++11 -O3
 
 init:
 	[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)

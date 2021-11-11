@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <iostream>
 #include <iomanip>
+#include <memory>
 
 #define _SKIP_LIST_MAX_LEVEL 8
 
@@ -13,14 +14,15 @@ class skip_list_node {
 public:
     _Key key;
     _Val val;
-    _node** next;
+
+    std::shared_ptr<_node>* next;
     
     size_t level = 0;
 
     bool is_header = false, is_tail = false;
 
     skip_list_node(size_t _level) {
-        next = new _node*[_level];
+        next = new std::shared_ptr<_node>[_level];
         level = _level;
     }
 
@@ -51,8 +53,8 @@ class skip_list {
 protected:
     typedef skip_list_node<_Key, _Val> _node;
 
-    _node* header;
-    _node* tail;
+    std::shared_ptr<_node> header;
+    std::shared_ptr<_node> tail;
 
     size_t max_level;
 
@@ -67,8 +69,8 @@ public:
     skip_list(size_t _max_level = _SKIP_LIST_MAX_LEVEL) {
         max_level = _max_level;
 
-        header = new _node(max_level);
-        tail = new _node(max_level);
+        header = std::make_shared<_node>(max_level);
+        tail = std::make_shared<_node>(max_level);
 
         header->mark_as_header();
         tail->mark_as_tail();
@@ -81,8 +83,8 @@ public:
     }
 
     virtual ~skip_list() {
-        delete header;
-        delete tail;
+        header.reset();
+        tail.reset();
     };
 
     virtual _Val get(_Key key) = 0;
