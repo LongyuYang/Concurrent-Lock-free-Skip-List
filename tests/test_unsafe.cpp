@@ -11,13 +11,13 @@ int main() {
     // reference
     std::map<int, int> s_ref;
 
-    int k = 1 << 19; // average number of unique key values in the set
+    int k = 1 << 15; // average number of unique key values in the set
     int n = 1 << 20; // operation number
 
     // initialization
     for (int i = 0; i < k; i++) {
-        s.insert(k, k);
-        s_ref.insert(std::pair<int, int>(k, k));
+        s.insert(i, i);
+        s_ref.insert(std::pair<int, int>(i, i));
     }
 
     // perform operations
@@ -50,7 +50,7 @@ int main() {
             s_ref.erase(rand_key);
         }
     }
-    
+
     std::cout << "passed" << std::endl;
 
     return 0;
