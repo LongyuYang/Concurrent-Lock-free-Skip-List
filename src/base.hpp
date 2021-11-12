@@ -5,12 +5,15 @@
 #include <iostream>
 #include <iomanip>
 #include <memory>
+#include <mutex>
 
 #define _SKIP_LIST_MAX_LEVEL 8
 
-template<class _Key, class _Val> 
+template<class _Key, class _Val, bool _init_lock = false> 
 class skip_list_node {
-    typedef skip_list_node<_Key, _Val> _node;
+private:
+    typedef skip_list_node<_Key, _Val, _init_lock> _node;
+    std::mutex* pointer_locks; // initialize only when _init_lock = true
 public:
     _Key key;
     _Val val;
@@ -24,10 +27,17 @@ public:
     skip_list_node(size_t _level) {
         next = new std::shared_ptr<_node>[_level];
         level = _level;
+
+        if (_init_lock) {
+            pointer_locks = new std::mutex[_level + 1];
+        }
     }
 
-    ~skip_list_node() {
+    virtual ~skip_list_node() {
         delete[] next;
+        if (_init_lock) {
+            delete[] pointer_locks;
+        }
     }
 
     void mark_as_header() { is_header = true; }
@@ -35,23 +45,52 @@ public:
     void set_level(size_t _level) { level = _level; }
     void set_key_val(_Key _key, _Val _val) { key = _key, val = _val; }
 
-    bool operator<(_node another_node) {
-        return is_header ? true : (is_tail ? false : key < another_node.key);
+    bool operator<(const _node& another_node) {
+        return (is_header || another_node.is_tail) ? true : 
+        ((is_tail || another_node.is_header)? false : key < another_node.key);
+    }
+
+    bool operator>(const _node& another_node) {
+        return !this->operator<(another_node);
     }
 
     bool operator<(_Key another_key) {
         return is_header ? true : (is_tail ? false : key < another_key);
     }
 
+    bool operator>(_Key another_key) {
+        return is_header ? false : (is_tail ? true : key > another_key);
+    }
+
     bool operator==(_Key another_key) {
         return is_header ? false : (is_tail ? false : key == another_key);
     }
+
+    // lock a next pointer on the given level 0 to level - 1
+    // if i == level, it means lock the whole level
+    void lock(int i) {
+        if (_init_lock) {
+            pointer_locks[i].lock();
+        } else {
+            std::cerr << "Warning: pointer lock uninitialized!" << std::endl;
+        }
+    }
+
+    // unlock a next pointer on the given level 0 to level - 1
+    // if i == level, it means unlock the whole level
+    void unlock(int i) {
+        if (_init_lock) {
+            pointer_locks[i].unlock();
+        } else {
+            std::cerr << "Warning: pointer lock uninitialized!" << std::endl;
+        }
+    }
 };
 
-template<class _Key, class _Val>
+template<class _Key, class _Val, bool _init_lock = false>
 class skip_list {
 protected:
-    typedef skip_list_node<_Key, _Val> _node;
+    typedef skip_list_node<_Key, _Val, _init_lock> _node;
 
     std::shared_ptr<_node> header;
     std::shared_ptr<_node> tail;
@@ -78,8 +117,6 @@ public:
         for (int i = 0; i < max_level; i++) {
             header->next[i] = tail;
         }
-
-        srand(time(NULL));
     }
 
     virtual ~skip_list() {
@@ -92,7 +129,7 @@ public:
     virtual void erase(_Key key) = 0;
 
     void debug_print() {
-        _node* x = header;
+        std::shared_ptr<_node> x = header;
         while (x != tail) {
             for (size_t i = 0; i < x->level; i++) {
                 std::cout << std::setw(6) << x->key;

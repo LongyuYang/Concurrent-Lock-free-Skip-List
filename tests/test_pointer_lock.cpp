@@ -1,4 +1,4 @@
-#include "unsafe.hpp"
+#include "pointer_lock.hpp"
 
 #include <map>
 
@@ -6,13 +6,13 @@ int main() {
     srand(15618);
 
     // our thread-unsafe skip list
-    unsafe_skip_list<int, int> s;
+    pointer_lock_skip_list<int, int> s;
 
     // reference
     std::map<int, int> s_ref;
 
-    int k = 1 << 10; // average number of unique key values in the set
-    int n = 1 << 20; // operation number
+    int k = 1 << 15; // average number of unique key values in the set
+    int n = 1 << 19; // operation number
 
     // initialization
     for (int i = 0; i < k; i++) {
@@ -20,11 +20,12 @@ int main() {
         s_ref.insert(std::pair<int, int>(i, i));
     }
 
+
     // perform operations
     for (int i = 0; i < n; i++) {
         int rand_key = rand() % k;
         int rand_opt = rand() % 1000 + 1;
- 
+
         // 75% lookup
         if (rand_opt <= 750) {
             int val = s.get(rand_key);
@@ -32,7 +33,6 @@ int main() {
 
             if (val != val_ref) {
                 std::cout << "Fail: value mismatch for key=" << rand_key << std::endl;
-
                 exit(1);
             }
         }
@@ -50,7 +50,7 @@ int main() {
             s_ref.erase(rand_key);
         }
     }
-
+    
     std::cout << "passed" << std::endl;
 
     return 0;
