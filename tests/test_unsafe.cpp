@@ -11,7 +11,7 @@ int main() {
     // reference
     std::map<int, int> s_ref;
 
-    int k = 1 << 10; // average number of unique key values in the set
+    int k = 1 << 15; // average number of unique key values in the set
     int n = 1 << 20; // operation number
 
     // initialization

@@ -6,39 +6,35 @@
 #include <iomanip>
 #include <memory>
 #include <mutex>
+#include <vector>
 
-#define _SKIP_LIST_MAX_LEVEL 8
+#define _SKIP_LIST_MAX_LEVEL 16
 
 template<class _Key, class _Val, bool _init_lock = false> 
 class skip_list_node {
 private:
     typedef skip_list_node<_Key, _Val, _init_lock> _node;
-    std::mutex* pointer_locks; // initialize only when _init_lock = true
+    std::vector<std::mutex> pointer_locks; // initialize only when _init_lock = true
 public:
     _Key key;
     _Val val;
 
-    std::shared_ptr<_node>* next;
+    std::vector<std::shared_ptr<_node>> next;
     
     size_t level = 0;
 
     bool is_header = false, is_tail = false;
 
     skip_list_node(size_t _level) {
-        next = new std::shared_ptr<_node>[_level];
+        next.resize(_level);
         level = _level;
 
         if (_init_lock) {
-            pointer_locks = new std::mutex[_level + 1];
+            pointer_locks = std::vector<std::mutex>(_level + 1);
         }
     }
 
-    virtual ~skip_list_node() {
-        delete[] next;
-        if (_init_lock) {
-            delete[] pointer_locks;
-        }
-    }
+    virtual ~skip_list_node() {}
 
     void mark_as_header() { is_header = true; }
     void mark_as_tail() { is_tail = true; }
@@ -120,8 +116,8 @@ public:
     }
 
     virtual ~skip_list() {
-        header.reset();
         tail.reset();
+        header.reset();
     };
 
     virtual _Val get(_Key key) = 0;
@@ -129,10 +125,10 @@ public:
     virtual void erase(_Key key) = 0;
 
     void debug_print() {
-        std::shared_ptr<_node> x = header;
+        std::shared_ptr<_node> x = header->next[0];
         while (x != tail) {
             for (size_t i = 0; i < x->level; i++) {
-                std::cout << std::setw(6) << x->key;
+                std::cout << std::setw(10) << x->key;
             }
             std::cout << std::endl;
             x = x->next[0];

@@ -7,7 +7,7 @@ INCLUDE = -I$(SOURCEDIR)
 TESTDIR = $(BASEDIR)/tests
 
 CXX = g++
-CXXFLAGS = $(INCLUDE) -std=c++11 -O3
+CXXFLAGS = $(INCLUDE) -m64 -std=c++11 -O3
 
 init:
 	[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
@@ -17,7 +17,7 @@ test_unsafe: init
 	$(BUILDDIR)/$@
 
 test_pointer_lock: init
-	$(CXX) $(TESTDIR)/$@.cpp $(CXXFLAGS) -o $(BUILDDIR)/$@ 
+	$(CXX) $(TESTDIR)/$@.cpp $(CXXFLAGS) -fopenmp -o $(BUILDDIR)/$@ 
 	$(BUILDDIR)/$@
 
 clean:
