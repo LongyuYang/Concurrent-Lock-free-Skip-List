@@ -22,5 +22,9 @@ test_pointer_lock: init
 	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@
 	$(BUILDDIR)/$@
 
+test_glock: init
+	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@
+	$(BUILDDIR)/$@
+
 clean:
 	rm -rf $(BUILDDIR)/*
