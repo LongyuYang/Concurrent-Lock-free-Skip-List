@@ -9,7 +9,7 @@ LIBS = $(GCDIR)/lib/libgc.a
 TESTDIR = $(BASEDIR)/tests
 
 CXX = g++
-CXXFLAGS = $(INCLUDE) -m64 -std=c++11 -O0 -g -lpthread 
+CXXFLAGS = $(INCLUDE) -m64 -std=c++11 -O3 -lpthread 
 
 init:
 	[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
@@ -23,6 +23,10 @@ test_pointer_lock: init
 	$(BUILDDIR)/$@
 
 test_glock: init
+	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@
+	$(BUILDDIR)/$@
+
+test_lock_free: init
 	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@
 	$(BUILDDIR)/$@
 

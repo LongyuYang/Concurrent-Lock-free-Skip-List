@@ -24,6 +24,8 @@ public:
     _Key key;
     _Val val;
 
+    _Val *v_ptr; // used by lock-free implementation only
+
     _node** next;
     
     size_t level = 0;
@@ -51,6 +53,7 @@ public:
     void mark_as_tail() { is_tail = true; }
     void set_level(size_t _level) { level = _level; }
     void set_key_val(_Key _key, _Val _val) { key = _key, val = _val; }
+    void set_key_val(_Key _ket, _Val *_v_ptr) { key = _ket, v_ptr = _v_ptr; }
 
     bool operator<(const _node& another_node) {
         return (is_header || another_node.is_tail) ? true : 
