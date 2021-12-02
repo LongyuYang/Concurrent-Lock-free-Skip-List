@@ -15,7 +15,7 @@
 
 #define _SKIP_LIST_MAX_LEVEL 16
 
-template<class _Key, class _Val, bool _init_lock = false> 
+template<class _Key, class _Val, bool _init_lock = true> 
 class skip_list_node {
 private:
     typedef skip_list_node<_Key, _Val, _init_lock> _node;
@@ -97,7 +97,7 @@ public:
     }
 };
 
-template<class _Key, class _Val, bool _init_lock = false>
+template<class _Key, class _Val, bool _init_lock = true>
 class skip_list {
 protected:
     typedef skip_list_node<_Key, _Val, _init_lock> _node;

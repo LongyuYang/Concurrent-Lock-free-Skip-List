@@ -4,7 +4,7 @@
 #include "base.hpp"
 
 template<class _Key, class _Val>
-class pointer_lock_skip_list : public skip_list<_Key, _Val, true> {
+class pointer_lock_skip_list : public skip_list<_Key, _Val> {
 private:
     typedef skip_list_node<_Key, _Val, true> _node;
 
