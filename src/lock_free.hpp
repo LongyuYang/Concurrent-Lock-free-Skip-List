@@ -2,7 +2,7 @@
 #define _LOCK_FREE_SKIP_LIST_H
 
 #include "base.hpp"
-
+#include <assert.h>
 #define CAS(ptr, old_val, new_val) __sync_val_compare_and_swap(ptr, old_val, new_val)
 
 template<class _Key, class _Val>
@@ -63,7 +63,16 @@ public:
         _node** left_list = (_node**)GC_MALLOC(this->max_level * sizeof(_node*));
         _node** right_list = (_node**)GC_MALLOC(this->max_level * sizeof(_node*));
         search(left_list, right_list, key);
-        _Val val = *right_list[0] == key ? *right_list[0]->v_ptr : _Val();
+
+        if (!(*right_list[0] == key)) {
+            GC_FREE(left_list);
+            GC_FREE(right_list);
+            return _Val();
+        }
+
+        _Val* v_ptr = right_list[0]->v_ptr;
+        _Val val = v_ptr ? *v_ptr : _Val();
+
         GC_FREE(left_list);
         GC_FREE(right_list);
         return val;
@@ -88,11 +97,12 @@ retry:
             do {
                 if ((old_v = right_list[0]->v_ptr) == nullptr) {
                     mark_node_ptrs(right_list[0]);
-                    //printf("goto retry 1, key=%d\n", key);
+                    // printf("goto retry 1, key=%d\n", key);
                     goto retry;
                 }
-                //printf("spin 1, key=%d\n", key);
+                // printf("spin 1, key=%d\n", key);
             } while(CAS(&right_list[0]->v_ptr, old_v, v_ptr) != old_v);
+            return;
         }
 
         for (size_t i = 0; i < new_level; i++) {
@@ -100,14 +110,14 @@ retry:
         }
 
         if (CAS(&left_list[0]->next[0], right_list[0], new_node) != right_list[0]) {
-            //printf("goto retry 2, key=%d\n", key);
+            // printf("goto retry 2, key=%d\n", key);
             goto retry;
         }
 
         for (size_t i = 1; i < new_level; i++) {
             _node *left, *right, *new_next;
             while (true) {
-                //printf("spin 3, key=%d, level=%d\n", key, i);
+                // printf("spin 3, key=%d, level=%d\n", key, i);
                 left = left_list[i], right = right_list[i];
 
                 new_next = new_node->next[i];
