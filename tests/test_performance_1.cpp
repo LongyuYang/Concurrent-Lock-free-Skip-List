@@ -3,21 +3,33 @@
 #include "pointer_lock.hpp"
 #include "CycleTimer.h"
 
+#include <getopt.h>
+
 #include <assert.h>
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
 #include <random>
-#include <array>
 #include <vector>
 
-#define MAX_THREAD 128
+// number of operations per thread
 #define OPT_SIZE 1000000
+
+// data range of the skip list
 #define DATA_RANGE 2000000
 
-#define INSERT_PROPORTION 20
-#define ERASE_PROPORTION 10
-#define GET_PROPORTION 70
+// proportions for insert, erase, and get
+#define INSERT_PROPORTION 50
+#define ERASE_PROPORTION 50
+#define GET_PROPORTION 0
+
+#define NUM_ROUNDS 3
+
+enum VERSION_TYPE {
+    GLOCK = 0,
+    PLOCK,
+    LOCK_FREE
+};
 
 enum OPT_TYPE {
     INSERT = 0,
@@ -38,15 +50,16 @@ struct thread_arg {
     skip_list<int, int>* s;
 };
 
+const char* msg[3] = {
+    "global  lock",
+    "pointer lock",
+    "lock    free"
+};
 
-void print_3lists_throughput(long long n_threads, double glock_time, double plock_time, double free_time) {
-    printf("=============================================\n");
-    printf("[global lock skip list]: \t\t[%.3f] \n", double(OPT_SIZE*n_threads)/glock_time);
-    printf("[pointer lock skip list]:\t\t[%.3f] \n", double(OPT_SIZE*n_threads)/plock_time);
-    printf("[lock free skip list]:   \t\t[%.3f] \n", double(OPT_SIZE*n_threads)/free_time);
-    printf("=============================================\n");
+void print_throughput(VERSION_TYPE version, size_t n_threads, double execution_time) {
+    printf("[%s skip list with %lu threads]: \t\t[%.3f] opt/ms\n", 
+    msg[int(version)], n_threads, double(OPT_SIZE*n_threads)/execution_time);
 }
-
 
 void* thread_execution(void* _arg) {
     thread_arg* arg = (thread_arg*)(_arg);
@@ -122,31 +135,68 @@ double start_test(skip_list<int, int>* s, size_t total, size_t N_THREAD) {
 }
 
 
-int main() {
+int main(int argc, char** argv) {
     assert(INSERT_PROPORTION + ERASE_PROPORTION + GET_PROPORTION == 100);
 
-    for (size_t n_threads = 1; n_threads <= MAX_THREAD; n_threads <<= 1) {
-        glock_skip_list<int, int> glock_list;
-        pointer_lock_skip_list<int, int> plock_list;
-        lock_free_skip_list<int, int> free_list;
+    int opt;
+    static struct option long_options[] = {
+        {"help",     0, 0,  'h'},
+        {"thread",    1, 0,  't'},
+        {"version",     1, 0,  'v'},
+        {0 ,0, 0, 0}
+    };
 
-        double glock_time, plock_time, free_time;
+    int n_threads;
+    VERSION_TYPE version;
 
-        printf("start testing global lock...\n");
-        glock_time = start_test(&glock_list, OPT_SIZE, n_threads);
-
-        printf("start testing per pointer lock...\n");
-        plock_time = start_test(&plock_list, OPT_SIZE, n_threads);
-
-        printf("start testing lock free...\n");
-        free_time = start_test(&free_list, OPT_SIZE, n_threads);
-
-        printf("%d operations with %d%% insert, %d%% erase, %d%% get.\n", 
-                OPT_SIZE, INSERT_PROPORTION, ERASE_PROPORTION, GET_PROPORTION);
-        printf("num threads=%d, data range=%d.\n", n_threads, DATA_RANGE);
-
-        print_3lists_throughput(n_threads, glock_time, plock_time, free_time);
+    // start parsing arguments
+    while ((opt = getopt_long(argc, argv, "t:v:h", long_options, NULL)) != EOF) {
+        switch (opt) {
+        case 't':
+            n_threads = atoi(optarg);
+            break;
+        case 'v':
+            version = VERSION_TYPE(atoi(optarg));
+            break;
+        case 'h':
+        default:
+            printf("  -t  --thread  <INT> number of threads\n");
+            printf("  -v  --version <INT> 0: global lock, 1: pointer lock, 2: lock free\n");
+            printf("  -h  --help    This message\n");
+            return 1;
+        }
     }
+
+    assert(version >= 0 && version <= 2);
+    assert(n_threads >= 1);
+
+    double execution_time = 0.f;
+    
+    // perform several rounds and get the average execution time
+    for (size_t i = 1; i <= NUM_ROUNDS; i++) {
+        skip_list<int, int>* s;
+        switch (version) {
+        case VERSION_TYPE::GLOCK:
+            s = new glock_skip_list<int, int>();
+            break;
+        case VERSION_TYPE::PLOCK:
+            s = new pointer_lock_skip_list<int, int>();
+            break;
+        case VERSION_TYPE::LOCK_FREE:
+            s = new lock_free_skip_list<int, int>();
+            break;
+        default:
+            printf("unknown skip list version\n");
+            return 1;
+        }
+
+        execution_time += start_test(s, OPT_SIZE, n_threads);
+
+        delete s;
+    }
+
+    execution_time /= NUM_ROUNDS;
+    print_throughput(version, n_threads, execution_time);
     
     return 0;
 }

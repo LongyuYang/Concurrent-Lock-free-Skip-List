@@ -5,7 +5,7 @@ BUILDDIR = $(BASEDIR)/build
 SOURCEDIR = $(BASEDIR)/src
 GCDIR = $(BASEDIR)/gc
 INCLUDE = -I$(SOURCEDIR) -I$(GCDIR)/include/gc/
-LIBS = $(GCDIR)/lib/libgc.a
+LIBS = $(GCDIR)/lib/libgc.so
 TESTDIR = $(BASEDIR)/tests
 
 CXX = g++
@@ -30,9 +30,17 @@ test_lock_free: init
 	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@
 	$(BUILDDIR)/$@
 
-test_performance: init
+test_performance_1: init
 	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@
-	$(BUILDDIR)/$@
+	bash $(TESTDIR)/scripts/performance_1.sh
+
+test_performance_2: init
+	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@
+	bash $(TESTDIR)/scripts/performance_2.sh
+
+test_performance_3: init
+	$(CXX) $(TESTDIR)/test_performance_2.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@
+	bash $(TESTDIR)/scripts/performance_3.sh
 
 clean:
 	rm -rf $(BUILDDIR)/*

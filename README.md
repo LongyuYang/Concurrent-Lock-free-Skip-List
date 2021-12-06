@@ -3,13 +3,14 @@ Final course project for CMU [15-618 Parallel Computer Architectures and Program
 ## Requirements
 ### Garbage Collector Library
 - Since lazy deletion is performed in our pointer-lock and lock-free implementations, [Boehm Garbage Collector](https://hboehm.info/gc/) library is required.
-- Please download the ```gc-7.0``` tar ball from [here](https://hboehm.info/gc/gc_source/) to the root of this repository.
 - Execute the following commands:
 ```bash
-tar zxvf gc-7.0.tar.gz
-mkdir gc
-cd gc-7.0
+git clone git://github.com/ivmai/bdwgc.git
+cd bdwgc
+git clone git://github.com/ivmai/libatomic_ops.git
+./autogen.sh
 ./configure --prefix=ABSOLUTE_PATH_OF_THIS_REPO/gc --enable-threads=posix --enable-thread-local-alloc --enable-parallel-mark --enable-cplusplus
 make
 make install
+make check
 ```

@@ -2,7 +2,7 @@
 #define _LOCK_FREE_SKIP_LIST_H
 
 #include "base.hpp"
-#include <assert.h>
+
 #define CAS(ptr, old_val, new_val) __sync_val_compare_and_swap(ptr, old_val, new_val)
 
 template<class _Key, class _Val>
