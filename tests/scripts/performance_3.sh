@@ -9,7 +9,6 @@ truncate $RESULT --size 0
 
 for (( version = 0; version <= 2; version++ ))
 do
-    echo "==========================================="
     for (( data_range = 4; data_range <= MAX_DATA_RANGE; data_range++ ))
     do
         $BUILDDIR/test_performance_3 -v $version -t 64 -r $data_range >> $RESULT
@@ -19,6 +18,5 @@ do
             exit $?
         fi
     done
-    echo "==========================================="
     echo -n -e "\n" >> $RESULT
 done

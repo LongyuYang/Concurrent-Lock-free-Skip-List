@@ -9,10 +9,9 @@ truncate $RESULT --size 0
 
 for (( version = 0; version <= 2; version++ ))
 do
-    echo "==========================================="
     for (( n_threads = 1; n_threads <= $MAX_THREADS; ))
     do
-        $BUILDDIR/test_performance_2 -v $version -t $n_threads -r 7 >> $RESULT
+        $BUILDDIR/test_performance_2 -v $version -t $n_threads -r 14 >> $RESULT
         if [ $? != 0 ];
         then
             echo "Error: execute failed"
@@ -25,6 +24,5 @@ do
             n_threads=`expr $n_threads + 10`
         fi
     done
-    echo "==========================================="
     echo -n -e "\n" >> $RESULT
 done

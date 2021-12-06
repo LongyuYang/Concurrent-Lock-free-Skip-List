@@ -44,9 +44,9 @@ const char* msg[3] = {
 };
 
 void print_time_per_operation(VERSION_TYPE version, int n_threads, int power, double total_opts) {
-    // printf("[%s skip list with %d threads and 2^%d range]: \t\t[%.3f] us/opt\n", 
-    // msg[int(version)], n_threads, power, 1000000.f * OPT_SECONDS / total_opts);
-    printf("%.3f\t", 1000000.f * OPT_SECONDS / total_opts);
+    printf("[%s skip list with %d threads and 2^%d range]: \t\t[%.3f] us/opt\n", 
+    msg[int(version)], n_threads, power, 1000000.f * OPT_SECONDS / total_opts);
+    // printf("%.3f\t", 1000000.f * OPT_SECONDS / total_opts);
 }
 
 void* thread_execution(void* _arg) {
@@ -83,6 +83,11 @@ void* thread_execution(void* _arg) {
 double start_test(skip_list<int, int>* s, size_t N_THREAD, int data_range) {
     pthread_t ts[N_THREAD];
     thread_arg arg[N_THREAD];
+
+    // init data
+    for (int i = 0; i < data_range; i++) {
+        s->insert(i, i);
+    }
 
     double startTime = CycleTimer::currentSeconds();
 
