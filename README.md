@@ -3,13 +3,35 @@ Final course project for CMU [15-618 Parallel Computer Architectures and Program
 ## Requirements
 ### Garbage Collector Library
 - Since lazy deletion is performed in our pointer-lock and lock-free implementations, [Boehm Garbage Collector](https://hboehm.info/gc/) library is required.
-- Please download the ```gc-7.0``` tar ball from [here](https://hboehm.info/gc/gc_source/) to the root of this repository.
 - Execute the following commands:
 ```bash
-tar zxvf gc-7.0.tar.gz
-mkdir gc
-cd gc-7.0
+git clone git://github.com/ivmai/bdwgc.git
+cd bdwgc
+git clone git://github.com/ivmai/libatomic_ops.git
+./autogen.sh
 ./configure --prefix=ABSOLUTE_PATH_OF_THIS_REPO/gc --enable-threads=posix --enable-thread-local-alloc --enable-parallel-mark --enable-cplusplus
 make
 make install
+make check
 ```
+
+## Test Suites
+### Correctness
+Execute the corresponding command in the ```Makefile``` to check the correctness of the implementation. For instance, run the test suite to check the correctness of the lock-free implementation:
+```bash
+make test_lock_free
+```
+### Performance
+Execute the following commands to get the performance results measured by mean CPU time per operation:
+```bash
+make test_performance_2
+```
+The above test suite fixes the total data range to 2^19 and varies the thread count from 1 to 100. You can also run:
+```bash
+make test_performance_3
+```
+The above test suite fixes the thread count to 16 and varies the data range from 2^4 to 2^19.
+
+## Results
+![](./images/contention16.png)
+![](./images/sc19.png)
