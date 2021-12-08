@@ -11,7 +11,7 @@ class lock_free_skip_list : public skip_list<_Key, _Val> {
   private:
     typedef skip_list_node<_Key, _Val> _node;
 
-    // pointer lowest bit markint functions
+    // pointer lowest bit marking functions
     _node *mark(_node *p) { return (_node *)(uintptr_t(p) | 1); }
     _node *unmark(_node *p) { return (_node *)(uintptr_t(p) & (~1)); }
     bool is_marked(_node *p) { return uintptr_t(p) & 1; }
