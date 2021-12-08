@@ -7,6 +7,7 @@ GCDIR = $(BASEDIR)/gc
 INCLUDE = -I$(SOURCEDIR) -I$(GCDIR)/include/gc/
 LIBS = $(GCDIR)/lib/libgc.so
 TESTDIR = $(BASEDIR)/tests
+TEST_THREAD_SAFE = "test_thread_safe"
 
 CXX = g++
 CXXFLAGS = $(INCLUDE) -m64 -std=c++11 $(SOURCEDIR)/CycleTimer.h -O3 -lpthread 
@@ -18,17 +19,17 @@ test_unsafe: init
 	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@ 
 	$(BUILDDIR)/$@ 
 
-test_pointer_lock: init
-	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@
-	$(BUILDDIR)/$@
+compile_thread_safe: init
+	$(CXX) $(TESTDIR)/$(TEST_THREAD_SAFE).cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$(TEST_THREAD_SAFE)
 
-test_glock: init
-	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@
-	$(BUILDDIR)/$@
+test_glock: compile_thread_safe
+	$(BUILDDIR)/$(TEST_THREAD_SAFE) -v 0
 
-test_lock_free: init
-	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@
-	$(BUILDDIR)/$@
+test_pointer_lock: compile_thread_safe
+	$(BUILDDIR)/$(TEST_THREAD_SAFE) -v 1
+
+test_lock_free: compile_thread_safe
+	$(BUILDDIR)/$(TEST_THREAD_SAFE) -v 2
 
 test_performance_1: init
 	$(CXX) $(TESTDIR)/$@.cpp $(LIBS) $(CXXFLAGS) -o $(BUILDDIR)/$@

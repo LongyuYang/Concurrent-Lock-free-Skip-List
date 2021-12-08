@@ -7,10 +7,7 @@
 
 #include <assert.h>
 #include <iostream>
-#include <iomanip>
-#include <algorithm>
 #include <random>
-#include <vector>
 
 // number of operations per thread
 #define OPT_SIZE 1000000
@@ -141,8 +138,8 @@ int main(int argc, char** argv) {
     int opt;
     static struct option long_options[] = {
         {"help",     0, 0,  'h'},
-        {"thread",    1, 0,  't'},
-        {"version",     1, 0,  'v'},
+        {"thread",   1, 0,  't'},
+        {"version",  1, 0,  'v'},
         {0 ,0, 0, 0}
     };
 
