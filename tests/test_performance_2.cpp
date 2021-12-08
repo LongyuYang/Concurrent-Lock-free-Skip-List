@@ -1,7 +1,7 @@
+#include "CycleTimer.h"
 #include "glock.hpp"
 #include "lock_free.hpp"
 #include "pointer_lock.hpp"
-#include "CycleTimer.h"
 
 #include <getopt.h>
 
@@ -17,38 +17,32 @@ const double OPT_SECONDS = 10.f;
 #define ERASE_PROPORTION 125
 #define GET_PROPORTION 750
 
-enum VERSION_TYPE {
-    GLOCK = 0,
-    PLOCK,
-    LOCK_FREE
-};
+enum VERSION_TYPE { GLOCK = 0, PLOCK, LOCK_FREE };
 
 struct thread_arg {
     size_t tid;
     double start_time;
     size_t N_THREAD;
     int data_range;
-    skip_list<int, int>* s;
+    skip_list<int, int> *s;
 
     // return value
     double num_opts;
 };
 
-const char* msg[3] = {
-    "global  lock",
-    "pointer lock",
-    "lock    free"
-};
+const char *msg[3] = {"global  lock", "pointer lock", "lock    free"};
 
-void print_time_per_operation(VERSION_TYPE version, int n_threads, int power, double total_opts) {
-    printf("[%s skip list with %d threads and 2^%d range]: \t\t[%.3f] us/opt\n", 
-    msg[int(version)], n_threads, power, 1000000.f * OPT_SECONDS / total_opts);
+void print_time_per_operation(VERSION_TYPE version, int n_threads, int power,
+                              double total_opts) {
+    printf("[%s skip list with %d threads and 2^%d range]: \t\t[%.3f] us/opt\n",
+           msg[int(version)], n_threads, power,
+           1000000.f * OPT_SECONDS / total_opts);
     // printf("%.3f\t", 1000000.f * OPT_SECONDS / total_opts);
 }
 
-void* thread_execution(void* _arg) {
-    thread_arg* arg = (thread_arg*)(_arg);
-    skip_list<int, int>* s = arg->s;
+void *thread_execution(void *_arg) {
+    thread_arg *arg = (thread_arg *)(_arg);
+    skip_list<int, int> *s = arg->s;
     double num_opts = 0.f;
 
     // each thread executes 10s
@@ -61,7 +55,8 @@ void* thread_execution(void* _arg) {
         int rand_num = rand() % 1000;
         if (rand_num < INSERT_PROPORTION) {
             s->insert(num, num);
-        } else if (rand_num >= INSERT_PROPORTION && rand_num < INSERT_PROPORTION + ERASE_PROPORTION) {
+        } else if (rand_num >= INSERT_PROPORTION &&
+                   rand_num < INSERT_PROPORTION + ERASE_PROPORTION) {
             s->erase(num);
         } else {
             s->get(num);
@@ -76,8 +71,7 @@ void* thread_execution(void* _arg) {
     return nullptr;
 }
 
-
-double start_test(skip_list<int, int>* s, size_t N_THREAD, int data_range) {
+double start_test(skip_list<int, int> *s, size_t N_THREAD, int data_range) {
     pthread_t ts[N_THREAD];
     thread_arg arg[N_THREAD];
 
@@ -117,18 +111,15 @@ double start_test(skip_list<int, int>* s, size_t N_THREAD, int data_range) {
     return total_opts;
 }
 
-
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     assert(INSERT_PROPORTION + ERASE_PROPORTION + GET_PROPORTION == 1000);
 
     int opt;
-    static struct option long_options[] = {
-        {"help",     0, 0,  'h'},
-        {"thread",   1, 0,  't'},
-        {"version",  1, 0,  'v'},
-        {"range",    1, 0,  'r'},
-        {0 ,0, 0, 0}
-    };
+    static struct option long_options[] = {{"help", 0, 0, 'h'},
+                                           {"thread", 1, 0, 't'},
+                                           {"version", 1, 0, 'v'},
+                                           {"range", 1, 0, 'r'},
+                                           {0, 0, 0, 0}};
 
     int n_threads;
     VERSION_TYPE version;
@@ -136,7 +127,8 @@ int main(int argc, char** argv) {
     int power;
 
     // start parsing arguments
-    while ((opt = getopt_long(argc, argv, "t:v:r:h", long_options, NULL)) != EOF) {
+    while ((opt = getopt_long(argc, argv, "t:v:r:h", long_options, NULL)) !=
+           EOF) {
         switch (opt) {
         case 't':
             n_threads = atoi(optarg);
@@ -151,7 +143,8 @@ int main(int argc, char** argv) {
         case 'h':
         default:
             printf("  -t  --thread  <INT> number of threads\n");
-            printf("  -v  --version <INT> 0: global lock, 1: pointer lock, 2: lock free\n");
+            printf("  -v  --version <INT> 0: global lock, 1: pointer lock, 2: "
+                   "lock free\n");
             printf("  -r  --range   <INT> data range: 2^r\n");
             printf("  -h  --help    This message\n");
             return 1;
@@ -162,8 +155,8 @@ int main(int argc, char** argv) {
     assert(n_threads >= 1);
 
     double total_opts;
-    
-    skip_list<int, int>* s;
+
+    skip_list<int, int> *s;
     switch (version) {
     case VERSION_TYPE::GLOCK:
         s = new glock_skip_list<int, int>();
@@ -184,6 +177,6 @@ int main(int argc, char** argv) {
     delete s;
 
     print_time_per_operation(version, n_threads, power, total_opts);
-    
+
     return 0;
 }

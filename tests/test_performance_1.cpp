@@ -1,7 +1,7 @@
+#include "CycleTimer.h"
 #include "glock.hpp"
 #include "lock_free.hpp"
 #include "pointer_lock.hpp"
-#include "CycleTimer.h"
 
 #include <getopt.h>
 
@@ -22,17 +22,9 @@
 
 #define NUM_ROUNDS 3
 
-enum VERSION_TYPE {
-    GLOCK = 0,
-    PLOCK,
-    LOCK_FREE
-};
+enum VERSION_TYPE { GLOCK = 0, PLOCK, LOCK_FREE };
 
-enum OPT_TYPE {
-    INSERT = 0,
-    ERASE,
-    GET
-};
+enum OPT_TYPE { INSERT = 0, ERASE, GET };
 
 struct opt {
     int key;
@@ -42,30 +34,27 @@ struct opt {
 struct thread_arg {
     size_t tid;
     size_t total;
-    std::vector<opt>* opts;
+    std::vector<opt> *opts;
     size_t N_THREAD;
-    skip_list<int, int>* s;
+    skip_list<int, int> *s;
 };
 
-const char* msg[3] = {
-    "global  lock",
-    "pointer lock",
-    "lock    free"
-};
+const char *msg[3] = {"global  lock", "pointer lock", "lock    free"};
 
-void print_throughput(VERSION_TYPE version, size_t n_threads, double execution_time) {
-    printf("[%s skip list with %lu threads]: \t\t[%.3f] opt/ms\n", 
-    msg[int(version)], n_threads, double(OPT_SIZE*n_threads)/execution_time);
+void print_throughput(VERSION_TYPE version, size_t n_threads,
+                      double execution_time) {
+    printf("[%s skip list with %lu threads]: \t\t[%.3f] opt/ms\n",
+           msg[int(version)], n_threads,
+           double(OPT_SIZE * n_threads) / execution_time);
 }
 
-void* thread_execution(void* _arg) {
-    thread_arg* arg = (thread_arg*)(_arg);
-    skip_list<int, int>* s = arg->s;
+void *thread_execution(void *_arg) {
+    thread_arg *arg = (thread_arg *)(_arg);
+    skip_list<int, int> *s = arg->s;
     std::vector<opt> opts = *arg->opts;
 
     for (size_t i = 0; i < OPT_SIZE; i++) {
-        switch (opts[i].opt_type)
-        {
+        switch (opts[i].opt_type) {
         case OPT_TYPE::INSERT:
             s->insert(opts[i].key, opts[i].key);
             break;
@@ -75,15 +64,14 @@ void* thread_execution(void* _arg) {
         case OPT_TYPE::GET:
             s->get(opts[i].key);
             break;
-        
+
         default:
             break;
         }
     }
 }
 
-
-double start_test(skip_list<int, int>* s, size_t total, size_t N_THREAD) {
+double start_test(skip_list<int, int> *s, size_t total, size_t N_THREAD) {
     pthread_t ts[N_THREAD];
     thread_arg arg[N_THREAD];
 
@@ -98,7 +86,8 @@ double start_test(skip_list<int, int>* s, size_t total, size_t N_THREAD) {
             int rand_num = rand() % 100;
             if (rand_num < INSERT_PROPORTION) {
                 opts[n][i] = opt{num, OPT_TYPE::INSERT};
-            } else if (rand_num >= INSERT_PROPORTION && rand_num < INSERT_PROPORTION + ERASE_PROPORTION) {
+            } else if (rand_num >= INSERT_PROPORTION &&
+                       rand_num < INSERT_PROPORTION + ERASE_PROPORTION) {
                 opts[n][i] = opt{num, OPT_TYPE::ERASE};
             } else {
                 opts[n][i] = opt{num, OPT_TYPE::GET};
@@ -131,23 +120,21 @@ double start_test(skip_list<int, int>* s, size_t total, size_t N_THREAD) {
     return (endTime - startTime) * 1000;
 }
 
-
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     assert(INSERT_PROPORTION + ERASE_PROPORTION + GET_PROPORTION == 100);
 
     int opt;
-    static struct option long_options[] = {
-        {"help",     0, 0,  'h'},
-        {"thread",   1, 0,  't'},
-        {"version",  1, 0,  'v'},
-        {0 ,0, 0, 0}
-    };
+    static struct option long_options[] = {{"help", 0, 0, 'h'},
+                                           {"thread", 1, 0, 't'},
+                                           {"version", 1, 0, 'v'},
+                                           {0, 0, 0, 0}};
 
     int n_threads;
     VERSION_TYPE version;
 
     // start parsing arguments
-    while ((opt = getopt_long(argc, argv, "t:v:h", long_options, NULL)) != EOF) {
+    while ((opt = getopt_long(argc, argv, "t:v:h", long_options, NULL)) !=
+           EOF) {
         switch (opt) {
         case 't':
             n_threads = atoi(optarg);
@@ -158,7 +145,8 @@ int main(int argc, char** argv) {
         case 'h':
         default:
             printf("  -t  --thread  <INT> number of threads\n");
-            printf("  -v  --version <INT> 0: global lock, 1: pointer lock, 2: lock free\n");
+            printf("  -v  --version <INT> 0: global lock, 1: pointer lock, 2: "
+                   "lock free\n");
             printf("  -h  --help    This message\n");
             return 1;
         }
@@ -168,10 +156,10 @@ int main(int argc, char** argv) {
     assert(n_threads >= 1);
 
     double execution_time = 0.f;
-    
+
     // perform several rounds and get the average execution time
     for (size_t i = 1; i <= NUM_ROUNDS; i++) {
-        skip_list<int, int>* s;
+        skip_list<int, int> *s;
         switch (version) {
         case VERSION_TYPE::GLOCK:
             s = new glock_skip_list<int, int>();
@@ -194,6 +182,6 @@ int main(int argc, char** argv) {
 
     execution_time /= NUM_ROUNDS;
     print_throughput(version, n_threads, execution_time);
-    
+
     return 0;
 }

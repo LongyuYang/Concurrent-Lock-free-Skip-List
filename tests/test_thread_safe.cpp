@@ -1,5 +1,5 @@
-#include "lock_free.hpp"
 #include "glock.hpp"
+#include "lock_free.hpp"
 #include "pointer_lock.hpp"
 
 #include <assert.h>
@@ -10,31 +10,27 @@
 // number of high contention increment to each position
 #define HIGH_CONTENTION_INCREMENT 100
 
-enum VERSION_TYPE {
-    GLOCK = 0,
-    PLOCK,
-    LOCK_FREE
-};
+enum VERSION_TYPE { GLOCK = 0, PLOCK, LOCK_FREE };
 
 struct thread_arg {
     size_t tid;
     size_t k;
-    skip_list<int, int>* s;
+    skip_list<int, int> *s;
 
     // specific for high_contention_update
     size_t update_start;
 };
 
-void* data_initialize(void* _arg) {
-    thread_arg* arg = (thread_arg*)(_arg);
-    skip_list<int, int>* s = arg->s;
+void *data_initialize(void *_arg) {
+    thread_arg *arg = (thread_arg *)(_arg);
+    skip_list<int, int> *s = arg->s;
     for (int i = arg->tid; i < arg->k; i += N_THREAD) {
         s->insert(i, i);
     }
 }
 
-void* high_contention_update(void* _arg) {
-    thread_arg* arg = (thread_arg*)(_arg);
+void *high_contention_update(void *_arg) {
+    thread_arg *arg = (thread_arg *)(_arg);
     size_t index = arg->update_start + arg->tid;
     for (size_t cnt = 1; cnt <= HIGH_CONTENTION_INCREMENT; cnt++) {
         int v = arg->s->get(index);
@@ -44,43 +40,42 @@ void* high_contention_update(void* _arg) {
     }
 }
 
-void* check_init(void* _arg) {
-    thread_arg* arg = (thread_arg*)(_arg);
+void *check_init(void *_arg) {
+    thread_arg *arg = (thread_arg *)(_arg);
     for (int i = arg->tid; i < arg->k; i += N_THREAD) {
         int val = arg->s->get(i);
         if (val != i) {
-            printf("Error: value mismacthed at key=%d, val=%d, expected=%d\n", i, val, i);
+            printf("Error: value mismacthed at key=%d, val=%d, expected=%d\n",
+                   i, val, i);
             exit(1);
         }
     }
 }
 
-void* check_correctness(void* _arg) {
-    thread_arg* arg = (thread_arg*)(_arg);
+void *check_correctness(void *_arg) {
+    thread_arg *arg = (thread_arg *)(_arg);
     for (int i = arg->tid; i < arg->k; i += N_THREAD) {
         int val = arg->s->get(i);
         if (val != i + HIGH_CONTENTION_INCREMENT) {
-            printf("Error: value mismacthed at key=%d, val=%d, expected=%d\n", i, val, i+HIGH_CONTENTION_INCREMENT);
+            printf("Error: value mismacthed at key=%d, val=%d, expected=%d\n",
+                   i, val, i + HIGH_CONTENTION_INCREMENT);
             exit(1);
         }
     }
 }
 
-void* data_clear(void* _arg) {
-    thread_arg* arg = (thread_arg*)(_arg);
-    skip_list<int, int>* s = arg->s;
+void *data_clear(void *_arg) {
+    thread_arg *arg = (thread_arg *)(_arg);
+    skip_list<int, int> *s = arg->s;
     for (int i = arg->tid; i < arg->k; i += N_THREAD) {
         s->erase(i);
     }
 }
 
-int main(int argc, char** argv) {
-        int opt;
+int main(int argc, char **argv) {
+    int opt;
     static struct option long_options[] = {
-        {"help",     0, 0,  'h'},
-        {"version",  1, 0,  'v'},
-        {0 ,0, 0, 0}
-    };
+        {"help", 0, 0, 'h'}, {"version", 1, 0, 'v'}, {0, 0, 0, 0}};
 
     int n_threads;
     VERSION_TYPE version;
@@ -94,14 +89,15 @@ int main(int argc, char** argv) {
         case 'h':
         default:
             printf("  -t  --thread  <INT> number of threads\n");
-            printf("  -v  --version <INT> 0: global lock, 1: pointer lock, 2: lock free\n");
+            printf("  -v  --version <INT> 0: global lock, 1: pointer lock, 2: "
+                   "lock free\n");
             printf("  -h  --help    This message\n");
             return 1;
         }
     }
 
     assert(version >= 0 && version <= 2);
-    skip_list<int, int>* s;
+    skip_list<int, int> *s;
     switch (version) {
     case VERSION_TYPE::GLOCK:
         s = new glock_skip_list<int, int>();
@@ -123,7 +119,7 @@ int main(int argc, char** argv) {
     thread_arg arg[N_THREAD];
 
     size_t k = 1 << 15; // number of unique key values in the set
-    
+
     // concurrent initialization
     for (size_t i = 0; i < N_THREAD; i++) {
         arg[i] = {i, k, s};

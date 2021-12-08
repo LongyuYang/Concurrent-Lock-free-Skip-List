@@ -1,12 +1,10 @@
 #ifndef _SKIP_LIST_BASE_H
 #define _SKIP_LIST_BASE_H
 
-#include <stddef.h>
-#include <iostream>
 #include <iomanip>
-#include <memory>
+#include <iostream>
 #include <mutex>
-#include <vector>
+#include <stddef.h>
 
 #include <pthread.h>
 
@@ -15,19 +13,19 @@
 
 #define _SKIP_LIST_MAX_LEVEL 16
 
-template<class _Key, class _Val, bool _init_lock = true> 
-class skip_list_node {
-private:
+template <class _Key, class _Val, bool _init_lock = true> class skip_list_node {
+  private:
     typedef skip_list_node<_Key, _Val, _init_lock> _node;
-    std::mutex* pointer_locks;
-public:
+    std::mutex *pointer_locks;
+
+  public:
     _Key key;
     _Val val;
 
     _Val *v_ptr; // used by lock-free implementation only
 
-    _node** next;
-    
+    _node **next;
+
     size_t level = 0;
 
     bool is_header = false, is_tail = false;
@@ -35,11 +33,12 @@ public:
     skip_list_node() {}
 
     void init(size_t _level) {
-        next = (_node**)GC_MALLOC(_level * sizeof(_node*));
+        next = (_node **)GC_MALLOC(_level * sizeof(_node *));
         level = _level;
 
         if (_init_lock) {
-            pointer_locks = (std::mutex*)GC_MALLOC((_level + 1)*sizeof(std::mutex));
+            pointer_locks =
+                (std::mutex *)GC_MALLOC((_level + 1) * sizeof(std::mutex));
         }
     }
 
@@ -55,12 +54,15 @@ public:
     void set_key_val(_Key _key, _Val _val) { key = _key, val = _val; }
     void set_key_val(_Key _ket, _Val *_v_ptr) { key = _ket, v_ptr = _v_ptr; }
 
-    bool operator<(const _node& another_node) {
-        return (is_header || another_node.is_tail) ? true : 
-        ((is_tail || another_node.is_header)? false : key < another_node.key);
+    bool operator<(const _node &another_node) {
+        return (is_header || another_node.is_tail)
+                   ? true
+                   : ((is_tail || another_node.is_header)
+                          ? false
+                          : key < another_node.key);
     }
 
-    bool operator>(const _node& another_node) {
+    bool operator>(const _node &another_node) {
         return !this->operator<(another_node);
     }
 
@@ -97,31 +99,31 @@ public:
     }
 };
 
-template<class _Key, class _Val, bool _init_lock = true>
-class skip_list {
-protected:
+template <class _Key, class _Val, bool _init_lock = true> class skip_list {
+  protected:
     typedef skip_list_node<_Key, _Val, _init_lock> _node;
 
-    _node* header;
-    _node* tail;
+    _node *header;
+    _node *tail;
 
     size_t max_level;
 
     size_t rand_level() {
         size_t new_level = 1;
-        while(rand() % 2 == 0 && new_level <= max_level) {
+        while (rand() % 2 == 0 && new_level <= max_level) {
             new_level++;
         }
         return std::min(new_level, max_level);
     }
-public:
+
+  public:
     skip_list(size_t _max_level = _SKIP_LIST_MAX_LEVEL) {
         GC_INIT();
 
         max_level = _max_level;
 
-        header = (_node*)GC_MALLOC_UNCOLLECTABLE(sizeof(_node));
-        tail = (_node*)GC_MALLOC_UNCOLLECTABLE(sizeof(_node));
+        header = (_node *)GC_MALLOC_UNCOLLECTABLE(sizeof(_node));
+        tail = (_node *)GC_MALLOC_UNCOLLECTABLE(sizeof(_node));
 
         header->init(max_level);
         tail->init(max_level);
@@ -144,7 +146,7 @@ public:
     virtual void erase(_Key key) = 0;
 
     void debug_print() {
-        _node* x = header->next[0];
+        _node *x = header->next[0];
         while (x != tail) {
             for (size_t i = 0; i < x->level; i++) {
                 std::cout << std::setw(10) << x->key;

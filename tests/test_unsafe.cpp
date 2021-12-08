@@ -24,14 +24,15 @@ int main() {
     for (int i = 0; i < n; i++) {
         int rand_key = rand() % k;
         int rand_opt = rand() % 1000 + 1;
- 
+
         // 75% lookup
         if (rand_opt <= 750) {
             int val = s.get(rand_key);
             int val_ref = s_ref[rand_key];
 
             if (val != val_ref) {
-                std::cout << "Fail: value mismatch for key=" << rand_key << std::endl;
+                std::cout << "Fail: value mismatch for key=" << rand_key
+                          << std::endl;
 
                 exit(1);
             }
