@@ -26,11 +26,11 @@ Execute the following commands to get the performance results measured by mean C
 ```bash
 make test_performance_2
 ```
-This test suite fixes the total data range to 2^19 and varies the thread count from 1 to 100. You can also run:
+The above test suite fixes the total data range to 2^19 and varies the thread count from 1 to 100. You can also run:
 ```bash
 make test_performance_3
 ```
-This test suite fix the thread count to 16 and varies the data range from 2^4 to 2^19.
+The above test suite fixes the thread count to 16 and varies the data range from 2^4 to 2^19.
 
 ## Results
 ![](./images/contention16.png)
