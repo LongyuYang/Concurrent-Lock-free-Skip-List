@@ -17,7 +17,7 @@ make check
 
 ## Test Suites
 ### Correctness
-Execute the corresponding command in the ```Makefile``` to check the correctness of the implementation. For instance, run the test suite to check the correctness of the lock-free implementation:
+Execute the corresponding command in the ```Makefile``` to check the correctness of the corresponding implementation. For instance, run the test suite to check the correctness of the lock-free implementation:
 ```bash
 make test_lock_free
 ```
@@ -33,5 +33,6 @@ make test_performance_3
 The above test suite fixes the thread count to 16 and varies the data range from 2^4 to 2^19.
 
 ## Results
+- Below are performance results obtained on an 8-core 3.0 GHz Intel Core i7 processor.
 ![](./images/contention16.png)
 ![](./images/sc19.png)
